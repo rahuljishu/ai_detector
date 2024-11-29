@@ -1,14 +1,12 @@
 # app.py
 import streamlit as st
-import nltk
-from nltk.tokenize import word_tokenize, sent_tokenize
 from textblob import TextBlob
 import numpy as np
 from collections import Counter
 import re
 
-# Download required NLTK data
-nltk.download('punkt')
+def get_sentences(text):
+    return re.split('[.!?]+', text)
 
 def analyze_text(text):
     text = re.sub(r'\s+', ' ', text).strip()
@@ -17,7 +15,7 @@ def analyze_text(text):
     if len(words) > 1000:
         return {"error": "Text exceeds 1000 words limit"}
     
-    sentences = sent_tokenize(text)
+    sentences = [s.strip() for s in get_sentences(text) if s.strip()]
     blob = TextBlob(text)
     
     avg_sentence_length = len(words) / max(len(sentences), 1)
