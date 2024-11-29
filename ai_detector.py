@@ -8,40 +8,30 @@ from collections import Counter
 import re
 
 # Download required NLTK data
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
+nltk.download('punkt')
 
 def analyze_text(text):
-    # Basic text cleaning
     text = re.sub(r'\s+', ' ', text).strip()
+    words = text.split()
     
-    # Word count check
-    words = word_tokenize(text)
     if len(words) > 1000:
         return {"error": "Text exceeds 1000 words limit"}
     
-    # Text analysis
     sentences = sent_tokenize(text)
     blob = TextBlob(text)
     
-    # Feature extraction
-    avg_sentence_length = len(words) / len(sentences)
-    unique_words_ratio = len(set(words)) / len(words)
-    avg_word_length = sum(len(word) for word in words) / len(words)
+    avg_sentence_length = len(words) / max(len(sentences), 1)
+    unique_words_ratio = len(set(words)) / max(len(words), 1)
+    avg_word_length = sum(len(word) for word in words) / max(len(words), 1)
     
-    # Sentiment consistency
     sentiment_scores = [TextBlob(sent).sentiment.polarity for sent in sentences]
-    sentiment_variance = np.var(sentiment_scores)
+    sentiment_variance = np.var(sentiment_scores) if sentiment_scores else 0
     
-    # Calculate repeated phrases
     phrase_length = 3
     phrases = [' '.join(words[i:i+phrase_length]) for i in range(len(words)-phrase_length+1)]
     phrase_counts = Counter(phrases)
-    repetition_ratio = len([p for p in phrase_counts.values() if p > 1]) / len(phrases) if phrases else 0
+    repetition_ratio = len([p for p in phrase_counts.values() if p > 1]) / max(len(phrases), 1) if phrases else 0
     
-    # AI detection metrics
     metrics = {
         "sentence_length_score": min(100, (avg_sentence_length / 15) * 100),
         "vocabulary_diversity": unique_words_ratio * 100,
@@ -50,7 +40,6 @@ def analyze_text(text):
         "repetition_patterns": (1 - repetition_ratio) * 100
     }
     
-    # Calculate overall AI probability
     weights = {
         "sentence_length_score": 0.2,
         "vocabulary_diversity": 0.25,
@@ -86,7 +75,6 @@ def main():
             st.error(results["error"])
             return
             
-        # Display results
         col1, col2 = st.columns(2)
         
         with col1:
